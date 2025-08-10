@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-6">
+    <h2 class="text-3xl font-bold mb-8 text-blue-800">Dashboard</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% if user.role == 'admin' or user.role == 'tester' %}
+        <a href="{% url 'barcode_module' %}" class="block bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            <h3 class="text-xl font-semibold">Generate Barcode</h3>
+            <p class="mt-2">Create and manage barcode batches</p>
+        </a>
+        {% endif %}
+        {% if user.role == 'admin' or user.role == 'tester' %}
+        <a href="{% url 'testing_module' %}" class="block bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            <h3 class="text-xl font-semibold">Product Testing</h3>
+            <p class="mt-2">Perform and view test results</p>
+        </a>
+        {% endif %}
+        {% if user.role == 'admin' or user.role == 'service' %}
+        <div class="bg-gray-300 text-gray-700 p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold">Service and Maintenance</h3>
+            <p class="mt-2">Coming soon...</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

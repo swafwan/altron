@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load inventory_tags %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200">
+
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-3xl font-extrabold text-blue-800 tracking-tight">Test Report: {{ test.barcode.sequence_number }}</h2>
+            <div class="flex space-x-4">
+                <a href="{% url 'test_results' %}" class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Back to Test Results
+                </a>
+                <a href="{% url 'print_test_report' test.id %}" target="_blank" class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    Print Report
+                </a>
+            </div>
+        </div>
+
+        {# Test Summary Details #}
+        <div class="mb-8 p-6 bg-blue-50 rounded-lg shadow-inner border border-blue-200 text-blue-800">
+            <h3 class="text-xl font-semibold mb-4">Test Summary</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-base">
+                <p><strong>SKU:</strong> {{ test.sku.code }}</p>
+                <p><strong>Batch:</strong> {{ test.batch.prefix }} ({{ test.batch.batch_date }})</p>
+                <p><strong>Barcode:</strong> {{ test.barcode.sequence_number }}</p>
+                <p><strong>Test Date:</strong> {{ test.test_date|date:"F d, Y H:i" }}</p>
+                <p><strong>Tested By:</strong> {{ test.user.username }} ({{ test.user.role|capitalize }})</p>
+                <p><strong>Template Used:</strong> {{ test.template_used.name|default:"N/A" }}</p>
+                {# Overall Status is now part of the editable form below #}
+            </div>
+        </div>
+
+        {# Editable Overall Test Status Form #}
+        <h3 class="text-2xl font-semibold text-gray-800 mb-6">Edit Overall Test Status</h3>
+        <form method="post">
+            {% csrf_token %}
+            {# Overall Status field from the form #}
+            <div class="mb-6">
+                <label for="{{ form.overall_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Overall Status:</label>
+                {{ form.overall_status }}
+                {% if form.overall_status.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.overall_status.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="mt-8 w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                Save Changes
+            </button>
+        </form>
+
+        {# Detailed Test Results - Re-added this section #}
+        <h3 class="text-2xl font-semibold text-gray-800 mt-12 mb-6">Detailed Test Results</h3>
+        <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg w-2/5">Question</th>
+                        <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider w-1/5">Status</th>
+                        <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg w-2/5">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for answer in test_answers %} {# Using test_answers from context #}
+                    <tr>
+                        <td class="py-3 px-4 align-top text-sm text-gray-900 font-medium whitespace-normal break-words">{{ answer.question.question_text }}</td>
+                        <td class="py-3 px-4 align-top text-sm">
+                            <span class="font-medium px-2 py-1 rounded-full text-xs
+                                {% if answer.is_passed %}bg-green-100 text-green-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ answer.is_passed|yesno:"Passed,Failed" }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 align-top text-sm text-gray-700 whitespace-normal break-words">{{ answer.remarks|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="py-6 px-4 text-center text-gray-500 text-base">No detailed answers found for this test.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

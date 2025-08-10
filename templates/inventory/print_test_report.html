@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Report</title>
+    <style>
+        html, body { /* Ensure html and body take full height for print */
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            display: flex; /* Make body a flex container */
+            flex-direction: column; /* Stack children vertically */
+            background-color: #ffffff; /* Ensure white background for printing */
+        }
+        @page {
+            size: A4 portrait; /* Standard paper size */
+            margin: 1cm; /* Adjust margins as needed */
+        }
+        .header, .footer {
+            width: 100%;
+            text-align: center;
+            flex-shrink: 0; /* Prevent header/footer from shrinking */
+        }
+        .header img, .footer img {
+            width: 100%;
+            max-height: 120px;
+            object-fit: contain; /* Ensure image fits without cropping */
+        }
+        .main-content { /* New wrapper for the main content */
+            flex-grow: 1; /* Allow main content to grow and push footer down */
+            padding-top: 20px; /* Add some top padding below header */
+            padding-bottom: 20px; /* Add some bottom padding above footer */
+            box-sizing: border-box; /* Include padding in element's total width/height */
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+        .section strong {
+            display: inline-block;
+            width: 150px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 6px;
+            text-align: center;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        /* Styling for the overall status span from previous versions */
+        .overall-status-span {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 9999px; /* rounded-full equivalent */
+            font-size: 10px; /* text-xs equivalent */
+        }
+        .overall-status-passed { background-color: #d1fae5; color: #065f46; } /* bg-green-200 text-green-800 equivalent */
+        .overall-status-failed { background-color: #fee2e2; color: #991b1b; } /* bg-red-200 text-red-800 equivalent */
+        .overall-status-pending { background-color: #fff3cd; color: #92400e; } /* bg-yellow-200 text-yellow-800 equivalent */
+    </style>
+</head>
+<body>
+    {% load inventory_tags %} {# Load custom tags for capitalize filter #}
+    {# No need to load static here, as header_url and footer_url are absolute URLs from the view #}
+
+    <div class="header">
+        <img src="{{ header_url }}" alt="Header Image">
+    </div>
+
+    <div class="main-content"> {# New wrapper for main content #}
+        <div class="section">
+            <strong>Barcode Sequence:</strong> {{ test.barcode.sequence_number }}<br>
+            <strong>Batch:</strong> {{ test.batch.prefix }} ({{ test.batch.batch_date }})<br>
+            <strong>Tester:</strong> {{ test.user.username }} <br>
+            <strong>Test Time:</strong> {{ test.test_date|date:"F d, Y H:i" }}<br>
+            <strong>Overall Status:</strong>
+            <span class="overall-status-span
+                {% if test.overall_status == 'passed' %}overall-status-passed
+                {% elif test.overall_status == 'failed' %}overall-status-failed
+                {% else %}overall-status-pending{% endif %}">
+                {{ test.overall_status|capitalize }}
+            </span>
+            <br>
+            <strong>Remarks:</strong> {{ test.remarks|default:"-" }}
+        </div>
+
+        <div class="section-title">Question Details</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for answer in test_answers %}
+                <tr>
+                    <td>{{ answer.question.question_text }}</td>
+                    <td>
+                        <span class="overall-status-span
+                            {% if answer.is_passed %}overall-status-passed
+                            {% else %}overall-status-failed{% endif %}">
+                            {{ answer.is_passed|yesno:"Passed,Failed" }}
+                        </span>
+                    </td>
+                    <td>{{ answer.remarks|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">No answers available.</td> {# Corrected colspan to 3 #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <img src="{{ footer_url }}" alt="Footer Image">
+    </div>
+</body>
+</html>

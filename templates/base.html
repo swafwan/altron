@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPS Manufacturing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {# Optional: Load Inter font for a modern look. If you prefer system fonts, you can remove this. #}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%; /* Ensure html and body take full viewport height */
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex; /* Make body a flex container */
+            flex-direction: column; /* Stack children vertically */
+        }
+        main {
+            flex-grow: 1; /* Allow main content to grow and push footer down */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-xl py-4 sm:py-5">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <a href="{% url 'dashboard' %}" class="text-3xl font-extrabold tracking-tight hover:text-blue-200 transition duration-300 ease-in-out">UPS Manufacturing</a>
+            <div class="flex items-center space-x-6">
+                {% if user.is_authenticated %}
+                <span class="text-lg font-medium text-blue-100">Welcome, <span class="font-semibold">{{ user.username }}</span> (<span class="capitalize">{{ user.role }}</span>)</span>
+                <a href="{% url 'logout' %}" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition duration-300 ease-in-out text-white font-medium shadow-md">Logout</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition duration-300 ease-in-out text-white font-medium shadow-md">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {# The main content area is now wrapped in a <main> tag for semantic HTML and flex-grow #}
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-6 mt-auto shadow-inner"> {# mt-auto pushes footer to bottom #}
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-sm">&copy; {{ "now"|date:"Y" }} UPS Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

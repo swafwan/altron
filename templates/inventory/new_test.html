@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load inventory_tags %} {# Assuming inventory_tags is needed for custom filters/tags #}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8 font-sans"> {# Consistent background with base.html #}
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200"> {# Centered, rounded, shadowed container #}
+
+        <div class="flex justify-between items-center mb-8"> {# Flex container for title and back button #}
+            <h2 class="text-3xl font-extrabold text-blue-800 tracking-tight">New Product Test</h2> {# Larger, bolder title #}
+            <a href="{% url 'testing_module' %}" class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                Back to Testing Module
+            </a>
+        </div>
+
+        <form method="post" id="test-form" class="space-y-8" data-new-test-url="{% url 'new_test' %}"> {# Increased vertical spacing #}
+            {% csrf_token %}
+
+            {# Display non-field errors if any #}
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">{{ form.non_field_errors }}</span>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> {# Increased gap #}
+                <div>
+                    <label for="id_sku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                    {{ form.sku }}
+                    {% if form.sku.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.sku.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_batch" class="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+                    {{ form.batch }}
+                    {% if form.batch.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.batch.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_barcode" class="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
+                    {{ form.barcode }}
+                    {% if form.barcode.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.barcode.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+                {# NEW FIELD: Template Selection #}
+                <div>
+                    <label for="id_template" class="block text-sm font-medium text-gray-700 mb-1">Test Template</label>
+                    {{ form.template }}
+                    {% if form.template.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.template.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+                {# Overall Status remains #}
+                <div>
+                    <label for="id_overall_status" class="block text-sm font-medium text-gray-700 mb-1">Overall Status</label>
+                    {{ form.overall_status }}
+                    {% if form.overall_status.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.overall_status.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold mt-8 text-blue-800 tracking-tight">Test Questions</h3> {# Larger, bolder heading #}
+            <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200"> {# Table container with shadow and rounded corners #}
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            {# Adjusted width to give more space to Question #}
+                            <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg w-2/5">Question</th>
+                            <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider w-1/5">Status</th>
+                            {# Adjusted width to give more space to Remarks #}
+                            <th class="py-3.5 px-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg w-2/5">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for field in form %}
+                            {% if field.name|slice:"0:9" == "question_" and field.name|slice:"-7:" == "_status" %}
+                            <tr class="border-b hover:bg-gray-50 transition duration-100 ease-in-out">
+                                {# Ensure question text wraps and has sufficient height - REMOVED SLICE FILTER #}
+                                <td class="py-3 px-4 align-top text-sm text-gray-900 font-medium whitespace-normal break-words">{{ field.label }}</td>
+                                <td class="py-3 px-4 align-top">
+                                    {# Apply Tailwind classes to the select field #}
+                                    <div class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        {{ field }}
+                                    </div>
+                                    {% if field.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ field.errors.as_text }}</p>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 align-top">
+                                    {% with remarks_name=field.name|slice:"0:-7"|add:"_remarks" %}
+                                        {# Ensure textarea has enough rows and wraps text #}
+                                        <textarea name="{{ remarks_name }}" id="id_{{ remarks_name }}" rows="4" {# Increased default rows #}
+                                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2.5 px-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:text-sm resize-y" {# Added resize-y #}
+                                                  placeholder="Add remarks here...">{{ form|attr:remarks_name|default:"" }}</textarea>
+                                        {% if form|attr:remarks_name and form|attr:remarks_name.errors %}
+                                            <p class="mt-1 text-sm text-red-600">{{ form|attr:remarks_name.errors.as_text }}</p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                Submit Test
+            </button>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testForm = document.getElementById('test-form');
+    const getElement = (id) => document.getElementById(id);
+
+    let tomSelectInstance = null;
+    let eventListeners = new Map();
+
+    function initializeTomSelect(elementId, placeholderText) {
+        const element = getElement(elementId);
+        if (element) {
+            // Destroy existing instance if it exists
+            if (element.tomselect) {
+                element.tomselect.destroy();
+            }
+            const instance = new TomSelect(element, {
+                create: false,
+                sortField: { field: 'text', direction: 'asc' },
+                placeholder: placeholderText,
+                render: {
+                    no_results: (data, escape) => `<div class="no-results">No results found for "${escape(data.input)}"</div>`
+                }
+            });
+            // Store instance on the element itself for easy access
+            element.tomselect = instance;
+            return instance;
+        }
+        return null;
+    }
+
+    function reattachListeners() {
+        // Remove old listeners
+        eventListeners.forEach((handler, element) => {
+            element.removeEventListener('change', handler);
+        });
+        eventListeners.clear();
+
+        // Add new listeners
+        const newSkuSelect = getElement('id_sku');
+        const newBatchSelect = getElement('id_batch');
+        const newTemplateSelect = getElement('id_template');
+
+        const handler = updateFormContent;
+
+        if (newSkuSelect) {
+            newSkuSelect.addEventListener('change', handler);
+            eventListeners.set(newSkuSelect, handler);
+        }
+        if (newBatchSelect) {
+            newBatchSelect.addEventListener('change', handler);
+            eventListeners.set(newBatchSelect, handler);
+        }
+        if (newTemplateSelect) {
+            newTemplateSelect.addEventListener('change', handler);
+            eventListeners.set(newTemplateSelect, handler);
+        }
+    }
+
+    function updateFormContent() {
+        let data = new FormData(testForm);
+        let url = testForm.dataset.newTestUrl;
+
+        fetch(url, {
+            method: 'POST',
+            body: data,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        }).then(html => {
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(html, 'text/html');
+            let newForm = doc.getElementById('test-form');
+            if (newForm) {
+                // Preserve existing values before replacing the form content
+                let currentValues = {
+                    sku: getElement('id_sku')?.value || '',
+                    batch: getElement('id_batch')?.value || '',
+                    template: getElement('id_template')?.value || '',
+                    overallStatus: getElement('id_overall_status')?.value || '',
+                    barcode: getElement('id_barcode')?.value || '',
+                    remarks: [...testForm.querySelectorAll('textarea[name$="_remarks"]')].reduce((acc, field) => {
+                        acc[field.name] = field.value;
+                        return acc;
+                    }, {})
+                };
+                
+                // Destroy old Tom Select instance if it exists
+                if (tomSelectInstance) {
+                    tomSelectInstance.destroy();
+                    tomSelectInstance = null;
+                }
+
+                // Replace the form's content
+                testForm.innerHTML = newForm.innerHTML;
+                testForm.dataset.newTestUrl = url;
+
+                // Re-initialize and restore values on the new form content
+                getElement('id_sku').value = currentValues.sku;
+                getElement('id_batch').value = currentValues.batch;
+                getElement('id_template').value = currentValues.template;
+                getElement('id_overall_status').value = currentValues.overallStatus;
+                
+                Object.entries(currentValues.remarks).forEach(([name, value]) => {
+                    const field = testForm.querySelector(`textarea[name="${name}"]`);
+                    if (field) field.value = value;
+                });
+                
+                // Re-initialize Tom Select for the new barcode dropdown
+                tomSelectInstance = initializeTomSelect('id_barcode', 'Select or type a Barcode...');
+                if (tomSelectInstance) {
+                    tomSelectInstance.setValue(currentValues.barcode);
+                }
+
+                // Re-attach event listeners to the new elements
+                reattachListeners();
+
+            } else {
+                console.error('New form not found in response');
+            }
+        }).catch(error => {
+            console.error('Error updating form:', error);
+        });
+    }
+
+    // Initial setup on page load
+    initializeTomSelect('id_barcode', 'Select a Barcode...');
+    reattachListeners();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6 text-blue-800">Create New Batch</h2>
+    <form method="post" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% csrf_token %}
+        
+        <div>
+            <label for="id_sku" class="block text-sm font-medium text-gray-700">SKU</label>
+            {{ form.sku|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_prefix" class="block text-sm font-medium text-gray-700">Prefix (Auto-filled from SKU)</label>
+            <input type="text" id="id_prefix" name="prefix" readonly class="w-full p-2 border rounded-md bg-gray-100 text-gray-700">
+        </div>
+
+        <div>
+            <label for="id_batch_date" class="block text-sm font-medium text-gray-700">Batch Date</label>
+            {{ form.batch_date|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+            {{ form.quantity|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_device_name" class="block text-sm font-medium text-gray-700">Device Name</label>
+            {{ form.device_name|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_battery" class="block text-sm font-medium text-gray-700">Battery</label>
+            {{ form.battery|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_capacity" class="block text-sm font-medium text-gray-700">Capacity</label>
+            {{ form.capacity|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_mppt_cap" class="block text-sm font-medium text-gray-700">MPPT Cap (optional)</label>
+            {{ form.mppt_cap|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_voc_max" class="block text-sm font-medium text-gray-700">Voc Max (optional)</label>
+            {{ form.voc_max|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_ef" class="block text-sm font-medium text-gray-700">EF (optional)</label>
+            {{ form.ef|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <div>
+            <label for="id_feature_spec" class="block text-sm font-medium text-gray-700">Feature / Spec (optional)</label>
+            {{ form.feature_spec|add_class:"w-full p-2 border rounded-md" }}
+        </div>
+
+        <!-- Full-width submit button -->
+        <div class="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end space-x-4 mt-2">
+            <a href="{% url 'batch_list' %}" class="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition">
+                ← Back
+            </a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
+                Create
+            </button>
+        </div>
+    </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const skuSelect = document.getElementById('id_sku');
+        const prefixField = document.getElementById('id_prefix');
+
+        function updatePrefix() {
+            const selectedOption = skuSelect.options[skuSelect.selectedIndex];
+            prefixField.value = selectedOption.text.trim();  // Set visible SKU code as prefix
+        }
+
+        updatePrefix(); // On load
+        skuSelect.addEventListener('change', updatePrefix); // On change
+    });
+</script>
+</div>
+{% endblock %}

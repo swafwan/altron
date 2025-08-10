@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Print Barcodes</title>
+    <style>
+        /* CSS Custom Properties (Variables) for standardization */
+        :root {
+            --font-size-small: 7pt;
+            --padding-container: 2mm;
+            --line-height-tight: 1.1;
+            --margin-bottom-bold: 0.5mm;
+            --margin-bottom-param: 0.2mm;
+            --margin-bottom-last-param: 1mm;
+            --barcode-image-max-height: 20mm; /* UPDATED: Reduced barcode image max height back to 18mm */
+            --sticker-border: 0.2mm solid #ccc; /* Subtle border for each sticker */
+        }
+
+        /* Styles for print media */
+        @page {
+            size: 50mm 35mm; /* Set page size to exactly one sticker (width height) */
+            margin: 0; /* Remove default page margins for full bleed */
+        }
+
+        body {
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            font-family: Arial, sans-serif; /* Standard font for readability */
+        }
+
+        .label-wrapper {
+            display: grid; /* Use CSS Grid for precise layout of labels */
+            grid-template-columns: 50mm; /* ONE column, 50mm wide */
+            gap: 0; /* No explicit gap in the grid, as page-break-after handles separation */
+            padding: 0; /* No padding around the grid wrapper */
+        }
+
+        .barcode-container {
+            width: 50mm; /* Fixed width for each sticker to 50mm */
+            height: 35mm; /* Fixed height for each sticker */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            text-align: left; /* Default alignment, will be overridden for device_name */
+            font-size: var(--font-size-small); /* Using CSS variable for font size */
+            display: flex; /* Use flexbox for vertical alignment within the sticker */
+            flex-direction: column; /* Stack items vertically */
+            justify-content: space-between; /* Distribute space between the text content and the image */
+            padding: var(--padding-container); /* Using CSS variable for padding */
+            page-break-inside: avoid; /* Prevent a sticker from breaking across two pages */
+            break-after: always; /* Force a page break after each sticker */
+            border: var(--sticker-border); /* Apply the border to each sticker */
+        }
+
+        /* Ensure the very last barcode container does NOT have a page break after it */
+        .barcode-container:last-of-type {
+            break-after: auto; /* Do not force a page break after the last sticker */
+        }
+
+        .barcode-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%; /* Ensure content takes full width for centering */
+            flex-grow: 1; /* Allow content to grow and push image down */
+            justify-content: flex-start; /* Align content to the top */
+        }
+
+        /* Device name alignment */
+        .barcode-content .device-name {
+            text-align: center; /* Align device name to center */
+            font-weight: bold; /* Ensure it's bold */
+            margin-bottom: var(--margin-bottom-bold);
+        }
+
+        .barcode-container img {
+            max-height: var(--barcode-image-max-height); /* Using CSS variable for barcode image max height */
+            width: auto; /* Image takes full available width */
+            object-fit: contain; /* Ensures the entire image is visible, scaling down if necessary */
+            margin-top: auto; /* Pushes the image to the bottom of the flex container */
+            margin-bottom: 0; /* No bottom margin for the image */
+        }
+
+        .barcode-container p {
+            margin: 0; /* Remove default paragraph margins to control spacing precisely */
+            line-height: var(--line-height-tight); /* Using CSS variable for line height */
+            white-space: nowrap; /* Prevent text from wrapping to the next line */
+            overflow: hidden; /* Hide any text that overflows its container */
+            text-overflow: ellipsis; /* Display an ellipsis (...) if text is truncated */
+            font-weight: bold; /* Make all parameter text bold by default */
+        }
+
+        /* Styles for rows that combine multiple parameters */
+        .parameter-row {
+            display: flex; /* Use flexbox to arrange items horizontally */
+            justify-content: space-between; /* Distribute space evenly between items, pushing them to ends */
+            width: 100%; /* Ensure the row takes the full width of its container */
+            margin: 0; /* Remove default margins */
+            line-height: var(--line-height-tight); /* Using CSS variable for line height */
+            font-size: var(--font-size-small); /* Using CSS variable for font size */
+            margin-bottom: var(--margin-bottom-param); /* Using CSS variable for margin */
+            font-weight: bold; /* Make parameter-row content bold */
+        }
+
+        /* Ensure individual spans within a parameter-row handle overflow */
+        .parameter-row span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1; /* Allow spans to shrink if content is too long */
+            flex-grow: 1; /* Allow spans to grow to fill available space */
+            flex-basis: auto; /* Base size is content size */
+        }
+
+        /* If there's only one span in a row, align it to the start */
+        .parameter-row:has(span:only-child) {
+            justify-content: flex-start;
+        }
+
+        /* General margin for all non-bold paragraphs - This rule is now less critical as all p are bold */
+        .barcode-container p:not(.bold) {
+            margin-bottom: var(--margin-bottom-param);
+        }
+
+        /* Add a slightly larger margin after the last parameter line before the image */
+        /* This targets the last direct child of .barcode-content (which could be a p or a div.parameter-row) */
+        .barcode-content > *:last-child {
+              margin-bottom: var(--margin-bottom-last-param);
+        }
+        /* Barcode sequence number styling */
+        .barcode-sequence-number {
+            font-size: 9pt; /* Larger font for the sequence number */
+            text-align: center; /* Center the sequence number */
+            margin-top: 1mm; /* Small margin above it */
+            font-weight: bold; /* Make it bold */
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="label-wrapper">
+        {% for barcode in barcodes %}
+        <div class="barcode-container">
+            <div class="barcode-content">
+                <p class="device-name">{{ barcode.batch.device_name }}</p> {# Applied new device-name class #}
+
+                <!-- Battery and Capacity on one line -->
+                <div class="parameter-row">
+                    <span>Battery: <strong>{{ barcode.batch.battery }}</strong></span> {# Made value bold #}
+                    <span>Capacity: <strong>{{ barcode.batch.capacity }}</strong></span> {# Made value bold #}
+                </div>
+
+                {% if barcode.batch.mppt_cap %}
+                    <p>MPPT Cap: <strong>{{ barcode.batch.mppt_cap }}</strong></p> {# Made value bold #}
+                {% endif %}
+
+                <!-- Voc Max and EF on one line -->
+                {% if barcode.batch.voc_max or barcode.batch.ef %}
+                    <div class="parameter-row">
+                        {% if barcode.batch.voc_max %}
+                            <span>Voc Max: <strong>{{ barcode.batch.voc_max }}</strong></span> {# Made value bold #}
+                        {% endif %}
+                        {% if barcode.batch.ef %}
+                            <span>EF: <strong>{{ barcode.batch.ef }}</strong></span> {# Made value bold #}
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if barcode.batch.feature_spec %}
+                    <p>Spec: <strong>{{ barcode.batch.feature_spec }}</strong></p> {# Made value bold #}
+                {% endif %}
+            </div>
+            <img src="{% url 'barcode_image' barcode.sequence_number %}" 
+     alt="{{ barcode.sequence_number }}" 
+     style="max-height: var(--barcode-image-max-height); width: auto; image-rendering: crisp-edges;">
+
+            <p class="barcode-sequence-number">{{ barcode.sequence_number }}</p> {# Re-added barcode sequence number below image #}
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

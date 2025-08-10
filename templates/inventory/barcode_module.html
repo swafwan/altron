@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-6">
+    <h2 class="text-3xl font-bold mb-8 text-blue-800">Generate Barcode</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <a href="{% url 'create_batch' %}" class="block bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            <h3 class="text-xl font-semibold">Create Batch</h3>
+            <p class="mt-2">Create a new batch of barcodes</p>
+        </a>
+        <a href="{% url 'batch_list' %}" class="block bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            <h3 class="text-xl font-semibold">Batch List</h3>
+            <p class="mt-2">View all existing batches</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
